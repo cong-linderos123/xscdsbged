@@ -1,0 +1,54 @@
+{
+  "rules": {
+    "rooms": {
+      "$roomCode": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() || data.child('status').val() === 'closed' || data.child('status').val() === 'ended') && newData.child('hostUid').val() === auth.uid && newData.child('status').val() === 'waiting' && newData.child('seats/1').val() === auth.uid && newData.child('players').child(auth.uid).child('seat').val() === 1",
+        ".validate": "newData.hasChildren(['hostUid', 'createdAt', 'status', 'startAt', 'seats', 'players'])",
+        "hostUid": {
+          ".validate": "newData.isString()"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "status": {
+          ".write": "auth != null && data.parent().child('hostUid').val() === auth.uid",
+          ".validate": "newData.val() === 'waiting' || newData.val() === 'starting' || newData.val() === 'playing' || newData.val() === 'ended' || newData.val() === 'closed'"
+        },
+        "startAt": {
+          ".write": "auth != null && data.parent().child('hostUid').val() === auth.uid && data.parent().child('status').val() === 'waiting'",
+          ".validate": "newData.isNumber()"
+        },
+        "settings": {
+          ".write": "auth != null && data.parent().child('hostUid').val() === auth.uid && data.parent().child('status').val() === 'waiting'",
+          ".validate": "newData.hasChildren(['roles', 'colors', 'outlines', 'difficulty', 'viewMode'])"
+        },
+        "state": {
+          ".write": "auth != null && data.parent().child('hostUid').val() === auth.uid && (data.parent().child('status').val() === 'starting' || data.parent().child('status').val() === 'playing')",
+          ".validate": "newData.hasChildren(['map', 'players', 'ghosts', 'score', 'running'])"
+        },
+        "seats": {
+          "$seat": {
+            ".write": "auth != null && (( !data.exists() && newData.val() === auth.uid && $seat !== '1' && root.child('rooms').child($roomCode).child('status').val() === 'waiting') || (!newData.exists() && data.val() === auth.uid))",
+            ".validate": "newData.isString()"
+          }
+        },
+        "players": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && ((!newData.exists() && data.exists()) || (newData.exists() && root.child('rooms').child($roomCode).child('status').val() === 'waiting' && (root.child('rooms').child($roomCode).child('seats/1').val() === auth.uid && newData.child('seat').val() === 1 || root.child('rooms').child($roomCode).child('seats/2').val() === auth.uid && newData.child('seat').val() === 2 || root.child('rooms').child($roomCode).child('seats/3').val() === auth.uid && newData.child('seat').val() === 3 || root.child('rooms').child($roomCode).child('seats/4').val() === auth.uid && newData.child('seat').val() === 4)))",
+            ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'seat', 'joinedAt']) && newData.child('uid').val() === $uid && newData.child('seat').isNumber() && newData.child('joinedAt').isNumber())"
+          }
+        },
+        "inputs": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && ((!newData.exists() && data.exists()) || (newData.exists() && root.child('rooms').child($roomCode).child('status').val() === 'playing' && root.child('rooms').child($roomCode).child('players').child($uid).exists()))",
+            ".validate": "newData.hasChildren(['sequence', 'sentAt']) && newData.child('sequence').isNumber() && newData.child('sentAt').isNumber() && (!newData.hasChild('dir') || (newData.child('dir/x').isNumber() && newData.child('dir/y').isNumber() && (newData.child('dir/x').val() === 1 && newData.child('dir/y').val() === 0 || newData.child('dir/x').val() === -1 && newData.child('dir/y').val() === 0 || newData.child('dir/x').val() === 0 && newData.child('dir/y').val() === 1 || newData.child('dir/x').val() === 0 && newData.child('dir/y').val() === -1))) && (!newData.hasChild('action') || newData.child('action').val() === 'c' || newData.child('action').val() === 'cUp' || newData.child('action').val() === 'x' || newData.child('action').val() === 'z' || newData.child('action').val() === 'e' || newData.child('action').val() === 'b' || newData.child('action').val() === 'v' || newData.child('action').val() === 'n' || newData.child('action').val() === 'shift')",
+            "target": {
+              ".validate": "newData.hasChildren(['x', 'y']) && newData.child('x').isNumber() && newData.child('y').isNumber() && newData.child('x').val() >= 0 && newData.child('x').val() < 28 && newData.child('y').val() >= 0 && newData.child('y').val() < 31"
+            }
+          }
+        }
+      }
+    }
+  }
+}
